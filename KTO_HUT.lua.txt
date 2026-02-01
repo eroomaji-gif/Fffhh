@@ -634,111 +634,59 @@ task.spawn(function()
     end
 end)
 
--- [[ โค้ดเสกรถ KTO (ยัดไว้ล่างสุดของไฟล์) ]]
-local p = game:GetService("Players").LocalPlayer
-
--- สร้าง Tool ไว้ในช่องถือ
-local CarTool = Instance.new("Tool")
-CarTool.Name = "🚗 เสกรถ KTO (004)"
-CarTool.RequiresHandle = true
-CarTool.Parent = p.Backpack
-
--- สร้างด้ามจับ (Handle)
-local Handle = Instance.new("Part", CarTool)
-Handle.Name = "Handle"
-Handle.Size = Vector3.new(1, 1, 1)
-Handle.BrickColor = BrickColor.new("Really Black")
-Handle.Material = Enum.Material.Neon
-Handle.Transparency = 0.4 
-
--- [[ KTO HUB V143.0 - CLIENT SIDE VEHICLE (004) ]]
+-- [[ KTO HUB - MAP TO DRAWING STYLE (004) ]]
+-- วางไว้ท้ายสุดของไฟล์ได้เลย ไม่กวนโค้ดเก่า
 task.spawn(function()
-    local p = game:GetService("Players").LocalPlayer
+    local Lighting = game:GetService("Lighting")
     
-    local function SpawnPrivateCar()
-        local char = p.Character
-        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-        -- [[ KTO HUB V143.0 - AUTO-SIT PRIVATE CAR (004) ]]
-task.spawn(function()
-    local p = game:GetService("Players").LocalPlayer
+    -- 1. ปรับแสงให้เหมือนภาพวาด (High Contrast & Cartoon Feel)
+    Lighting.Brightness = 2.5
+    Lighting.GlobalShadows = true
+    Lighting.OutdoorAmbient = Color3.fromRGB(120, 120, 120)
+    Lighting.ExposureCompensation = 0.4
     
-    local function SpawnAndSit()
-        local char = p.Character
-        if not char or not char:FindFirstChild("Humanoid") then return end
-        local hum = char.Humanoid
-        local root = char.HumanoidRootPart
-        
-        -- ลบรถเก่าก่อนเสก
-        if workspace:FindFirstChild("KTO_PRIVATE_CAR") then
-            workspace.KTO_PRIVATE_CAR:Destroy()
+    -- 2. เพิ่ม Color Correction ให้โทนภาพเหมือนกระดาษวาดรูป
+    local cc = Instance.new("ColorCorrectionEffect", Lighting)
+    cc.Contrast = 0.5
+    cc.Saturation = -0.1 -- ลดสีสดๆ ลงนิดหน่อยให้ดูเหมือนภาพวาด
+    cc.TintColor = Color3.fromRGB(255, 250, 240) -- โทนสีครีมอุ่นๆ
+    
+    -- 3. เพิ่ม Bloom ให้แสงดูฟุ้งแบบงานอาร์ต
+    local bloom = Instance.new("BloomEffect", Lighting)
+    bloom.Intensity = 0.4
+    bloom.Size = 20
+    bloom.Threshold = 0.8
+
+    -- 4. ฟังก์ชันสร้างเส้นขอบดำ (Outline) แบบประหยัดสเปค
+    local function ApplyDrawingOutline(part)
+        -- ใส่เส้นขอบเฉพาะส่วนที่มองเห็นได้และไม่ใช่พื้นหลังไกลๆ
+        if part:IsA("BasePart") and part.Transparency < 1 and not part:FindFirstChild("DrawingLine") then
+            local outline = Instance.new("SelectionBox")
+            outline.Name = "DrawingLine"
+            outline.Adornee = part
+            outline.LineThickness = 0.005 -- เส้นบางๆ เหมือนปากกาตัดเส้น
+            outline.Color3 = Color3.new(0, 0, 0) -- เส้นสีดำ
+            outline.Transparency = 0.7 -- ความเข้มของเส้น
+            outline.SurfaceColor3 = Color3.new(0, 0, 0)
+            outline.Parent = part
         end
-
-        -- 1. สร้างโครงรถ
-        local car = Instance.new("Model", workspace)
-        car.Name = "KTO_PRIVATE_CAR"
-        
-        -- 2. ตัวถังรถ (ทำให้ใหญ่และแบนเหมือนพื้นรถ)
-        local body = Instance.new("Part", car)
-        body.Size = Vector3.new(12, 1, 15) -- ขนาดรถกว้างๆ
-        body.CFrame = root.CFrame * CFrame.new(0, -2, 0) -- เสกใต้เท้าพอดี
-        body.BrickColor = BrickColor.new("Really Black")
-        body.Material = Enum.Material.Neon
-        body.CanCollide = true
-        
-        -- 3. เบาะนั่ง (หัวใจสำคัญของการขับ)
-        local seat = Instance.new("VehicleSeat", car)
-        seat.Size = Vector3.new(4, 2, 4)
-        seat.CFrame = body.CFrame * CFrame.new(0, 1, 0)
-        seat.Transparency = 0.5 -- ให้เห็นจุดนั่งลางๆ
-        seat.CanCollide = true
-
-        -- เชื่อมรถกับเบาะ
-        local w = Instance.new("WeldConstraint", car)
-        w.Part0 = seat
-        w.Part1 = body
-
-        -- 4. บังคับให้นั่งทันที!
-        task.wait(0.1)
-        seat:Sit(hum)
-
-        -- 5. ระบบขับเคลื่อน (BodyVelocity)
-        local bv = Instance.new("BodyVelocity", body)
-        bv.MaxForce = Vector3.new(0, 0, 0)
-        
-        local bav = Instance.new("BodyAngularVelocity", body)
-        bav.MaxTorque = Vector3.new(0, 0, 0)
-
-        -- ลูปควบคุม
-        task.spawn(function()
-            while car.Parent and seat.Occupant do
-                bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
-                bav.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
-                
-                -- บังคับ
-                bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 100)
-                bav.AngularVelocity = Vector3.new(0, -seat.Steer * 4, 0)
-                
-                -- ถ้ากดกระโดด = บินขึ้น
-                if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
-                    bv.Velocity = bv.Velocity + Vector3.new(0, 50, 0)
-                end
-                task.wait(0.05)
-            end
-            -- ถ้าลุกจากเบาะ ให้ลบรถทิ้ง
-            car:Destroy()
-        end)
     end
 
-    -- ไอเทมเรียกใช้
-    local t = Instance.new("Tool")
-    t.Name = "🚗 เสกรถแล้วนั่งทันที (004)"
-    t.RequiresHandle = true
-    local h = Instance.new("Part", t)
-    h.Name = "Handle"
-    h.Size = Vector3.new(1,1,1)
-    t.Parent = p.Backpack
+    -- เริ่มทำงาน: เปลี่ยนของที่มีอยู่แล้วในแมพ
+    for _, obj in pairs(workspace:GetDescendants()) do
+        -- ค่อยๆ ทำเพื่อไม่ให้เกมค้าง (ใส่ delay เล็กน้อย)
+        if obj:IsA("BasePart") then
+            ApplyDrawingOutline(obj)
+        end
+    end
     
-    t.Activated:Connect(SpawnAndSit)
+    -- ดักจับของใหม่ (เช่น สกิลที่ปล่อยออกมา) ให้เป็นภาพวาดด้วย
+    workspace.DescendantAdded:Connect(function(obj)
+        if obj:IsA("BasePart") then
+            ApplyDrawingOutline(obj)
+        end
+    end)
+    
+    print("KTO: เปลี่ยนแมพเป็นภาพวาดสำเร็จ! (004)")
 end)
 
-        
