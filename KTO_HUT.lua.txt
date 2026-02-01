@@ -541,17 +541,7 @@ task.spawn(function()
     NukBtn.Size = UDim2.new(0.95, 0, 0, 35); NukBtn.Text = "☢️ ลบทั้งหมด"; NukBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0); NukBtn.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", NukBtn)
     NukBtn.MouseButton1Click:Connect(function() for _, v in pairs(workspace:GetChildren()) do if v.Name:find("MazdaObj") then v:Destroy() end end end)
 
-local CarBtn = Instance.new("TextButton", Scroll)
-CarBtn.Size = UDim2.new(0.95, 0, 0, 35)
-CarBtn.Position = UDim2.new(0.025, 0, 0, 0) -- ปรับตำแหน่งเล็กน้อยให้เข้าพวก
-CarBtn.Text = "🚗 เสกรถ KTO (004)"
-CarBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-CarBtn.TextColor3 = Color3.new(1, 1, 1)
-Instance.new("UICorner", CarBtn)
 
-CarBtn.MouseButton1Click:Connect(function()
-    Mazda_Hub:SpawnKTOVehicle()
-end)
 
     -- [ 🪄 ระบบคฑา ]
     local Wand = Instance.new("Tool"); Wand.Name = "🪄 MAZDA BUILDER"; Wand.RequiresHandle = true
