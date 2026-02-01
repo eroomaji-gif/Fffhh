@@ -56,36 +56,42 @@ local function Mazda_Equip(Name)
     return false
 end
 
-function SpawnKTOVehicle()
+function Mazda_Hub:SpawnKTOVehicle() -- เพิ่ม Mazda_Hub: เข้าไปข้างหน้า
     local p = game.Players.LocalPlayer
+    local char = p.Character or p.CharacterAdded:Wait()
+    
     local car = Instance.new("Model", workspace)
+    car.Name = "KTO_CAR_004"
+    
     local body = Instance.new("Part", car)
-    body.Size = Vector3.new(6, 2, 8)
-    body.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 5, -10)
+    body.Size = Vector3.new(8, 2, 10)
+    body.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 5, -10)
     body.BrickColor = BrickColor.new("Really Black")
+    body.Material = Enum.Material.Neon
     
     local seat = Instance.new("VehicleSeat", body)
-    seat.Size = Vector3.new(2, 1, 2)
-    seat.CFrame = body.CFrame * CFrame.new(0, 1, 0)
+    seat.Size = Vector3.new(4, 1, 4)
+    seat.CFrame = body.CFrame * CFrame.new(0, 1.5, 0)
     
     local bv = Instance.new("BodyVelocity", body)
     local bav = Instance.new("BodyAngularVelocity", body)
 
     task.spawn(function()
         while car.Parent do
-            task.wait(0.1)
             if seat.Occupant then
-                bv.MaxForce = Vector3.new(1e6, 0, 1e6)
-                bav.MaxTorque = Vector3.new(0, 1e6, 0)
-                bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 60)
+                bv.MaxForce = Vector3.new(math.huge, 0, math.huge)
+                bav.MaxTorque = Vector3.new(0, math.huge, 0)
+                bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 80)
                 bav.AngularVelocity = Vector3.new(0, -seat.Steer * 4, 0)
             else
                 bv.MaxForce = Vector3.new(0, 0, 0)
                 bav.MaxTorque = Vector3.new(0, 0, 0)
             end
+            task.wait(0.1)
         end
     end)
 end
+
 
 -- [[ AI หุ่นยนต์นักสำรวจ ]]
 local function Mazda_GoofyWalk(root, hum)
@@ -539,17 +545,6 @@ task.spawn(function()
     end
 
     -- [ 🎨 UI เมนูหลัก ]
-local CarBtn = Instance.new("TextButton", Scroll)
-CarBtn.Size = UDim2.new(0.95, 0, 0, 35)
-CarBtn.Text = "🚗 เสกรถ KTO (004)"
-CarBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-CarBtn.TextColor3 = Color3.new(1, 1, 1)
-Instance.new("UICorner", CarBtn)
-
-CarBtn.MouseButton1Click:Connect(function()
-    SpawnKTOVehicle()
-end)
-
     local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
     local Frame = Instance.new("Frame", sg)
     Frame.Size = UDim2.new(0, 180, 0, 350)
@@ -581,6 +576,18 @@ end)
     local NukBtn = Instance.new("TextButton", Scroll)
     NukBtn.Size = UDim2.new(0.95, 0, 0, 35); NukBtn.Text = "☢️ ลบทั้งหมด"; NukBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0); NukBtn.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", NukBtn)
     NukBtn.MouseButton1Click:Connect(function() for _, v in pairs(workspace:GetChildren()) do if v.Name:find("MazdaObj") then v:Destroy() end end end)
+
+local CarBtn = Instance.new("TextButton", Scroll)
+CarBtn.Size = UDim2.new(0.95, 0, 0, 35)
+CarBtn.Position = UDim2.new(0.025, 0, 0, 0) -- ปรับตำแหน่งเล็กน้อยให้เข้าพวก
+CarBtn.Text = "🚗 เสกรถ KTO (004)"
+CarBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+CarBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", CarBtn)
+
+CarBtn.MouseButton1Click:Connect(function()
+    Mazda_Hub:SpawnKTOVehicle()
+end)
 
     -- [ 🪄 ระบบคฑา ]
     local Wand = Instance.new("Tool"); Wand.Name = "🪄 MAZDA BUILDER"; Wand.RequiresHandle = true
