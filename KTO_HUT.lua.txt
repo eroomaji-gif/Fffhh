@@ -651,21 +651,21 @@ Handle.BrickColor = BrickColor.new("Really Black")
 Handle.Material = Enum.Material.Neon
 Handle.Transparency = 0.4 
 
--- ฟังก์ชันเสกรถ (จะทำงานเมื่อกดใช้ไอเทมในมือ)
-CarTool.Activated:Connect(function()
-    local char = p.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        -- ลบรถเก่าก่อนเสกใหม่ (กันแลค)
-        if workspace:FindFirstChild("KTO_CAR_004") then
-            workspace.KTO_CAR_004:Destroy()
-        end
-
+-- [[ บังคับเสกไอเทม KTO (004) ]]
+task.spawn(function()
+    local p = game:GetService("Players").LocalPlayer
+    -- รอจนกว่าตัวละครจะโหลดเสร็จ 100%
+    local char = p.Character or p.CharacterAdded:Wait()
+    
+    -- สร้างฟังก์ชันเสกรถไว้รอเรียกใช้
+    local function CreateKTOVehicle()
+        local root = char:WaitForChild("HumanoidRootPart")
         local car = Instance.new("Model", workspace)
         car.Name = "KTO_CAR_004"
         
         local body = Instance.new("Part", car)
         body.Size = Vector3.new(8, 2, 10)
-        body.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 5, -10)
+        body.CFrame = root.CFrame * CFrame.new(0, 5, -10)
         body.BrickColor = BrickColor.new("Really Black")
         body.Material = Enum.Material.Neon
         
@@ -681,15 +681,33 @@ CarTool.Activated:Connect(function()
                 if seat.Occupant then
                     bv.MaxForce = Vector3.new(math.huge, 0, math.huge)
                     bav.MaxTorque = Vector3.new(0, math.huge, 0)
-                    bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 85) -- ความเร็ว 85
+                    bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 85)
                     bav.AngularVelocity = Vector3.new(0, -seat.Steer * 4, 0)
                 else
                     bv.MaxForce = Vector3.new(0, 0, 0)
                     bav.MaxTorque = Vector3.new(0, 0, 0)
-                    bv.Velocity = Vector3.new(0, 0, 0)
                 end
                 task.wait(0.1)
             end
+        end)
+    end
+
+    -- บังคับยัดของเข้า Backpack (ทำซ้ำจนกว่าจะสำเร็จ)
+    local ToolName = "🚗 เสกรถ KTO (004)"
+    if not p.Backpack:FindFirstChild(ToolName) then
+        local Tool = Instance.new("Tool")
+        Tool.Name = ToolName
+        Tool.RequiresHandle = true
+        
+        local Handle = Instance.new("Part", Tool)
+        Handle.Name = "Handle"
+        Handle.Size = Vector3.new(1, 1, 1)
+        Handle.Transparency = 0.5
+        
+        Tool.Parent = p.Backpack
+        
+        Tool.Activated:Connect(function()
+            CreateKTOVehicle()
         end)
     end
 end)
