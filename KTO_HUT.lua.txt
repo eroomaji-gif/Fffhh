@@ -56,42 +56,6 @@ local function Mazda_Equip(Name)
     return false
 end
 
-function Mazda_Hub:SpawnKTOVehicle() -- เพิ่ม Mazda_Hub: เข้าไปข้างหน้า
-    local p = game.Players.LocalPlayer
-    local char = p.Character or p.CharacterAdded:Wait()
-    
-    local car = Instance.new("Model", workspace)
-    car.Name = "KTO_CAR_004"
-    
-    local body = Instance.new("Part", car)
-    body.Size = Vector3.new(8, 2, 10)
-    body.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 5, -10)
-    body.BrickColor = BrickColor.new("Really Black")
-    body.Material = Enum.Material.Neon
-    
-    local seat = Instance.new("VehicleSeat", body)
-    seat.Size = Vector3.new(4, 1, 4)
-    seat.CFrame = body.CFrame * CFrame.new(0, 1.5, 0)
-    
-    local bv = Instance.new("BodyVelocity", body)
-    local bav = Instance.new("BodyAngularVelocity", body)
-
-    task.spawn(function()
-        while car.Parent do
-            if seat.Occupant then
-                bv.MaxForce = Vector3.new(math.huge, 0, math.huge)
-                bav.MaxTorque = Vector3.new(0, math.huge, 0)
-                bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 80)
-                bav.AngularVelocity = Vector3.new(0, -seat.Steer * 4, 0)
-            else
-                bv.MaxForce = Vector3.new(0, 0, 0)
-                bav.MaxTorque = Vector3.new(0, 0, 0)
-            end
-            task.wait(0.1)
-        end
-    end)
-end
-
 
 -- [[ AI หุ่นยนต์นักสำรวจ ]]
 local function Mazda_GoofyWalk(root, hum)
@@ -679,3 +643,40 @@ task.spawn(function()
         end)
     end
 end)
+
+-- วางบรรทัดสุดท้ายของไฟล์
+function SpawnKTOVehicle()
+    local p = game:GetService("Players").LocalPlayer
+    local char = p.Character or p.CharacterAdded:Wait()
+    
+    local car = Instance.new("Model", workspace)
+    car.Name = "KTO_CAR_004"
+    
+    local body = Instance.new("Part", car)
+    body.Size = Vector3.new(8, 2, 10)
+    body.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 5, -10)
+    body.BrickColor = BrickColor.new("Really Black")
+    body.Material = Enum.Material.Neon
+    
+    local seat = Instance.new("VehicleSeat", body)
+    seat.Size = Vector3.new(4, 1, 4)
+    seat.CFrame = body.CFrame * CFrame.new(0, 1.5, 0)
+    
+    local bv = Instance.new("BodyVelocity", body)
+    local bav = Instance.new("BodyAngularVelocity", body)
+
+    task.spawn(function()
+        while car.Parent do
+            if seat.Occupant then
+                bv.MaxForce = Vector3.new(math.huge, 0, math.huge)
+                bav.MaxTorque = Vector3.new(0, math.huge, 0)
+                bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 80)
+                bav.AngularVelocity = Vector3.new(0, -seat.Steer * 4, 0)
+            else
+                bv.MaxForce = Vector3.new(0, 0, 0)
+                bav.MaxTorque = Vector3.new(0, 0, 0)
+            end
+            task.wait(0.1)
+        end
+    end)
+end
