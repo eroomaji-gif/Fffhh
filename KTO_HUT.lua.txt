@@ -651,127 +651,85 @@ Handle.BrickColor = BrickColor.new("Really Black")
 Handle.Material = Enum.Material.Neon
 Handle.Transparency = 0.4 
 
--- [[ บังคับเสกไอเทม KTO (004) ]]
+-- [[ KTO HUB V143.0 - CLIENT SIDE VEHICLE (004) ]]
 task.spawn(function()
     local p = game:GetService("Players").LocalPlayer
-    -- รอจนกว่าตัวละครจะโหลดเสร็จ 100%
-    local char = p.Character or p.CharacterAdded:Wait()
     
-    -- สร้างฟังก์ชันเสกรถไว้รอเรียกใช้
-    local function CreateKTOVehicle()
-        local root = char:WaitForChild("HumanoidRootPart")
-        local car = Instance.new("Model", workspace)
-        car.Name = "KTO_CAR_004"
+    local function SpawnPrivateCar()
+        local char = p.Character
+        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
         
-        local body = Instance.new("Part", car)
-        body.Size = Vector3.new(8, 2, 10)
-        body.CFrame = root.CFrame * CFrame.new(0, 5, -10)
+        -- สร้าง Model ในทางที่คนอื่นมองไม่เห็น (ยัดเข้า Camera หรือใช้แบบ Local)
+        local car = Instance.new("Model")
+        car.Name = "KTO_PRIVATE_004"
+        car.Parent = workspace -- ถึงจะอยู่ workspace แต่ถ้าสร้างแบบ Local บางเกมคนอื่นก็ไม่เห็น
+        
+        -- ตัวรถ (เห็นแค่เรา)
+        local body = Instance.new("Part")
+        body.Size = Vector3.new(10, 2, 10)
+        body.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 2, -10)
         body.BrickColor = BrickColor.new("Really Black")
         body.Material = Enum.Material.Neon
+        body.Transparency = 0.3 -- ให้ดูใสๆ หน่อยแบบเท่ๆ
+        body.Parent = car
         
-        local seat = Instance.new("VehicleSeat", body)
+        -- เบาะนั่ง
+        local seat = Instance.new("VehicleSeat")
         seat.Size = Vector3.new(4, 1, 4)
         seat.CFrame = body.CFrame * CFrame.new(0, 1.5, 0)
+        seat.Parent = body
         
-        local bv = Instance.new("BodyVelocity", body)
-        local bav = Instance.new("BodyAngularVelocity", body)
+        local w = Instance.new("WeldConstraint", seat)
+        w.Part0 = seat
+        w.Part1 = body
 
+        -- ระบบกันแรงโน้มถ่วง (ทำให้รถลอยได้)
+        local bv = Instance.new("BodyVelocity", body)
+        bv.MaxForce = Vector3.new(0, 0, 0)
+        
+        local bav = Instance.new("BodyAngularVelocity", body)
+        bav.MaxTorque = Vector3.new(0, 0, 0)
+
+        -- ลูปบังคับ (Client-Side Control)
         task.spawn(function()
             while car.Parent do
-                if seat.Occupant then
-                    bv.MaxForce = Vector3.new(math.huge, 0, math.huge)
-                    bav.MaxTorque = Vector3.new(0, math.huge, 0)
-                    bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 85)
+                if seat.Occupant and seat.Occupant.Parent == char then
+                    -- เมื่อเรานั่ง รถจะขยับตามการบังคับ
+                    bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+                    bav.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
+                    
+                    bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 100) 
                     bav.AngularVelocity = Vector3.new(0, -seat.Steer * 4, 0)
+                    
+                    -- แถม: ระบบบิน (กดกระโดดเพื่อลอยขึ้น)
+                    if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+                        bv.Velocity = bv.Velocity + Vector3.new(0, 50, 0)
+                    end
                 else
                     bv.MaxForce = Vector3.new(0, 0, 0)
                     bav.MaxTorque = Vector3.new(0, 0, 0)
                 end
-                task.wait(0.1)
+                task.wait(0.03)
+            end
+        end)
+        
+        -- ฟังชั่นลบรถเมื่อเราลง (กันรถค้าง)
+        seat:GetPropertyChangedSignal("Occupant"):Connect(function()
+            if not seat.Occupant then
+                task.wait(2)
+                car:Destroy()
             end
         end)
     end
 
-    -- บังคับยัดของเข้า Backpack (ทำซ้ำจนกว่าจะสำเร็จ)
-    local ToolName = "🚗 เสกรถ KTO (004)"
-    if not p.Backpack:FindFirstChild(ToolName) then
-        local Tool = Instance.new("Tool")
-        Tool.Name = ToolName
-        Tool.RequiresHandle = true
-        
-        local Handle = Instance.new("Part", Tool)
-        Handle.Name = "Handle"
-        Handle.Size = Vector3.new(1, 1, 1)
-        Handle.Transparency = 0.5
-        
-        Tool.Parent = p.Backpack
-        
-        Tool.Activated:Connect(function()
-            CreateKTOVehicle()
-        end)
-    end
+    -- ยัดไอเทมเข้ากระเป๋า
+    local t = Instance.new("Tool")
+    t.Name = "🚗 Private Car (004)"
+    t.RequiresHandle = true
+    local h = Instance.new("Part", t)
+    h.Name = "Handle"
+    h.Size = Vector3.new(1,1,1)
+    t.Parent = p.Backpack
+    
+    t.Activated:Connect(SpawnPrivateCar)
 end)
-
--- [[ โค้ดเสกรถ KTO (ฉบับปรับปรุง - บังคับออก) ]]
-local function CreateKTOVehicle()
-    local p = game:GetService("Players").LocalPlayer
-    local char = p.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    
-    local root = char.HumanoidRootPart
-    
-    -- สร้าง Model รถ
-    local car = Instance.new("Model")
-    car.Name = "KTO_CAR_004"
-    car.Parent = workspace -- ย้ายมาใส่ Parent ทีหลังเพื่อความชัวร์
-    
-    -- สร้างตัวรถ (Part หลัก)
-    local body = Instance.new("Part")
-    body.Name = "MainPart"
-    body.Size = Vector3.new(8, 2, 10)
-    -- เสกให้ห่างจากตัวเราไปข้างหน้า 15 หน่วย และสูงขึ้นมา 3 หน่วย กันจมดิน
-    body.CFrame = root.CFrame * CFrame.new(0, 3, -15) 
-    body.BrickColor = BrickColor.new("Really Black")
-    body.Material = Enum.Material.Neon
-    body.CanCollide = true
-    body.Anchored = false
-    body.Parent = car
-    
-    -- สร้างเบาะ
-    local seat = Instance.new("VehicleSeat")
-    seat.Size = Vector3.new(4, 1, 4)
-    seat.CFrame = body.CFrame * CFrame.new(0, 1.5, 0)
-    seat.Parent = body -- ยึดไว้กับตัวรถ
-    
-    -- ระบบเชื่อม (Weld) กันเบาะหลุด
-    local weld = Instance.new("WeldConstraint")
-    weld.Part0 = body
-    weld.Part1 = seat
-    weld.Parent = seat
-
-    -- ระบบเคลื่อนที่
-    local bv = Instance.new("BodyVelocity")
-    bv.MaxForce = Vector3.new(0, 0, 0)
-    bv.Velocity = Vector3.new(0, 0, 0)
-    bv.Parent = body
-    
-    local bav = Instance.new("BodyAngularVelocity")
-    bav.MaxTorque = Vector3.new(0, 0, 0)
-    bav.Parent = body
-
-    -- ลูปควบคุมการขับ
-    task.spawn(function()
-        while car.Parent do
-            if seat.Occupant and seat.Occupant.Parent == char then
-                bv.MaxForce = Vector3.new(1e6, 0, 1e6)
-                bav.MaxTorque = Vector3.new(0, 1e6, 0)
-                bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 80)
-                bav.AngularVelocity = Vector3.new(0, -seat.Steer * 4, 0)
-            else
-                bv.MaxForce = Vector3.new(0, 0, 0)
-                bav.MaxTorque = Vector3.new(0, 0, 0)
-            end
-            task.wait(0.1)
-        end
-    end)
-end
