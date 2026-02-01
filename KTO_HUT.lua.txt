@@ -711,3 +711,67 @@ task.spawn(function()
         end)
     end
 end)
+
+-- [[ โค้ดเสกรถ KTO (ฉบับปรับปรุง - บังคับออก) ]]
+local function CreateKTOVehicle()
+    local p = game:GetService("Players").LocalPlayer
+    local char = p.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    
+    local root = char.HumanoidRootPart
+    
+    -- สร้าง Model รถ
+    local car = Instance.new("Model")
+    car.Name = "KTO_CAR_004"
+    car.Parent = workspace -- ย้ายมาใส่ Parent ทีหลังเพื่อความชัวร์
+    
+    -- สร้างตัวรถ (Part หลัก)
+    local body = Instance.new("Part")
+    body.Name = "MainPart"
+    body.Size = Vector3.new(8, 2, 10)
+    -- เสกให้ห่างจากตัวเราไปข้างหน้า 15 หน่วย และสูงขึ้นมา 3 หน่วย กันจมดิน
+    body.CFrame = root.CFrame * CFrame.new(0, 3, -15) 
+    body.BrickColor = BrickColor.new("Really Black")
+    body.Material = Enum.Material.Neon
+    body.CanCollide = true
+    body.Anchored = false
+    body.Parent = car
+    
+    -- สร้างเบาะ
+    local seat = Instance.new("VehicleSeat")
+    seat.Size = Vector3.new(4, 1, 4)
+    seat.CFrame = body.CFrame * CFrame.new(0, 1.5, 0)
+    seat.Parent = body -- ยึดไว้กับตัวรถ
+    
+    -- ระบบเชื่อม (Weld) กันเบาะหลุด
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = body
+    weld.Part1 = seat
+    weld.Parent = seat
+
+    -- ระบบเคลื่อนที่
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(0, 0, 0)
+    bv.Velocity = Vector3.new(0, 0, 0)
+    bv.Parent = body
+    
+    local bav = Instance.new("BodyAngularVelocity")
+    bav.MaxTorque = Vector3.new(0, 0, 0)
+    bav.Parent = body
+
+    -- ลูปควบคุมการขับ
+    task.spawn(function()
+        while car.Parent do
+            if seat.Occupant and seat.Occupant.Parent == char then
+                bv.MaxForce = Vector3.new(1e6, 0, 1e6)
+                bav.MaxTorque = Vector3.new(0, 1e6, 0)
+                bv.Velocity = body.CFrame.LookVector * (seat.Throttle * 80)
+                bav.AngularVelocity = Vector3.new(0, -seat.Steer * 4, 0)
+            else
+                bv.MaxForce = Vector3.new(0, 0, 0)
+                bav.MaxTorque = Vector3.new(0, 0, 0)
+            end
+            task.wait(0.1)
+        end
+    end)
+end
